@@ -48,8 +48,9 @@ spec:
             - secretRef:
                 name: tiket-app-env
           env:
-            # socket.gethostname() would return the pod name; the app prefers
-            # this so the greeting and visits.host keep saying web1/web2.
+            # Downward API: NODE_NAME carries the node name (web1/web2) for
+            # per-node identification; the greeting itself comes from the
+            # pod hostname and stays pod-scoped.
             - name: NODE_NAME
               valueFrom:
                 fieldRef:
