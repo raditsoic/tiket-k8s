@@ -1,0 +1,16 @@
+# NodePort: HAProxy on the cp VM load-balances across the workers' kube-proxy
+# NodePort listeners. There is no ingress controller (k3s Traefik disabled) —
+# the Ingress object is gone with it.
+apiVersion: v1
+kind: Service
+metadata:
+  name: tiket-app
+spec:
+  type: NodePort
+  selector:
+    app: tiket-app
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      nodePort: 30080

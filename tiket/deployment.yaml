@@ -1,0 +1,56 @@
+# Rendered copy of the old Ansible template — this repo is now the source of
+# truth, deployed by ArgoCD (Application "tiket-app", auto-sync). Deploy =
+# commit a new image tag here; rollback = git revert. The DB Secret is NOT in
+# this repo: Ansible applies it from the vault (see vagrant-lab/k8s README).
+# Registry prefix note: change 10.0.2.2:5000 here if the lab switches to the
+# tunnel-mode registry hostname.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tiket-app
+  labels:
+    app: tiket-app
+spec:
+  replicas: 2
+  # Rollouts must kill before they schedule: with the hard one-pod-per-node
+  # spread below, a RollingUpdate surge pod (default maxSurge 25% -> 1 on two
+  # replicas) can never be placed on a 2-worker cluster and stalls forever.
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: tiket-app
+  template:
+    metadata:
+      labels:
+        app: tiket-app
+    spec:
+      # One pod per worker node — preserves the old "one container per web VM"
+      # load-balancing demo (greeting alternates web1/web2).
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: tiket-app
+      containers:
+        - name: tiket-app
+          image: 10.0.2.2:5000/tiket-app:latest
+          # `latest` is a moving tag CI re-pushes; containerd must re-pull.
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: tiket-app-env
+          env:
+            # socket.gethostname() would return the pod name; the app prefers
+            # this so the greeting and visits.host keep saying web1/web2.
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
