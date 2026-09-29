@@ -39,7 +39,7 @@ spec:
               app: tiket-app
       containers:
         - name: tiket-app
-          image: 10.0.2.2:5000/tiket-app:latest
+          image: 10.0.2.2:5000/tiket-app:main-9
           # `latest` is a moving tag CI re-pushes; containerd must re-pull.
           imagePullPolicy: Always
           ports:
