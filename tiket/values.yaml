@@ -5,7 +5,7 @@
 image:
   registry: 10.0.2.2:5000
   repository: tiket-app
-  tag: "main-12"
+  tag: main-13
 
 # Two workers, one pod each. The topologySpreadConstraints in the template
 # enforce the one-pod-per-node demo — keep this <= worker count or pods stall.
