@@ -1,9 +1,9 @@
-# Rendered copy of the old Ansible template — this repo is now the source of
-# truth, deployed by ArgoCD (Application "tiket-app", auto-sync). Deploy =
-# commit a new image tag here; rollback = git revert. The DB Secret is NOT in
-# this repo: Ansible applies it from the vault (see vagrant-lab/k8s README).
-# Registry prefix note: change 10.0.2.2:5000 here if the lab switches to the
-# tunnel-mode registry hostname.
+# The old Ansible template, now a Helm chart template — this repo is the
+# source of truth, deployed by ArgoCD (Application "tiket-app", auto-sync,
+# rendered with ArgoCD's bundled Helm). Deploy = bump image.tag in
+# values.yaml (CI commits it); rollback = git revert. The DB Secret is NOT
+# in this repo: Ansible applies it from the vault (see vagrant-lab/k8s
+# README). The registry prefix lives in values.yaml (image.registry).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -11,7 +11,7 @@ metadata:
   labels:
     app: tiket-app
 spec:
-  replicas: 2
+  replicas: {{ .Values.replicas }}
   # Rollouts must kill before they schedule: with the hard one-pod-per-node
   # spread below, a RollingUpdate surge pod (default maxSurge 25% -> 1 on two
   # replicas) can never be placed on a 2-worker cluster and stalls forever.
@@ -39,7 +39,7 @@ spec:
               app: tiket-app
       containers:
         - name: tiket-app
-          image: 10.0.2.2:5000/tiket-app:main-11
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
           # `latest` is a moving tag CI re-pushes; containerd must re-pull.
           imagePullPolicy: Always
           ports:

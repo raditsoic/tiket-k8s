@@ -1,0 +1,6 @@
+apiVersion: v2
+name: tiket
+description: tiket-app web tier — Deployment + NodePort Service for the lab cluster.
+type: application
+version: 0.1.0
+appVersion: "main-11"
