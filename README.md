@@ -11,7 +11,7 @@ automatically.
 | Path | Purpose |
 |---|---|
 | `tiket/Chart.yaml` | chart metadata (name `tiket`) |
-| `tiket/values.yaml` | the knobs: `image.tag` (CI bumps it per deploy), `image.registry` (`10.0.2.2:5000`), `replicas`, `service.nodePort` |
+| `tiket/values.yaml` | the knobs: `image.tag` (CI bumps it per deploy), `image.registry` (`10.0.2.2:5000`), `replicas`, `workers` (allowed nodes — keeps cp out of the spread domains so surge rollouts work), `service.nodePort` |
 | `tiket/templates/` | Deployment (2 replicas spread one-per-worker) + NodePort Service (`:30080`) — HAProxy on `cp` load-balances across the workers |
 
 ## Deploy flow

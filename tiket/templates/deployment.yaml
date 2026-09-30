@@ -12,9 +12,11 @@ metadata:
     app: tiket-app
 spec:
   replicas: {{ .Values.replicas }}
-  # Rollouts must kill before they schedule: with the hard one-pod-per-node
-  # spread below, a RollingUpdate surge pod (default maxSurge 25% -> 1 on two
-  # replicas) can never be placed on a 2-worker cluster and stalls forever.
+  # Zero-downtime: surge the new pod before killing an old one
+  # (maxUnavailable 0). This only schedules because the nodeAffinity in
+  # the pod spec below keeps cp out of the topology-spread domains —
+  # without it every surge pod is skew-2 against cp's zero-pod domain
+  # and stays Pending forever.
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -28,6 +30,19 @@ spec:
       labels:
         app: tiket-app
     spec:
+      # Keep pods on the workers only. Two effects: cp (the tainted
+      # control plane) is never a scheduling target, and — because
+      # nodeAffinityPolicy defaults to Honor — cp is excluded from the
+      # spread domains below, so a surge pod may transiently double up
+      # on one worker during rollouts.
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values: {{ .Values.workers | toJson }}
       # One pod per worker node — preserves the old "one container per web VM"
       # load-balancing demo (greeting alternates web1/web2).
       topologySpreadConstraints:

@@ -5,11 +5,19 @@
 image:
   registry: 10.0.2.2:5000
   repository: tiket-app
-  tag: main-12
+  tag: "main-12"
 
 # Two workers, one pod each. The topologySpreadConstraints in the template
 # enforce the one-pod-per-node demo — keep this <= worker count or pods stall.
 replicas: 2
+
+# Nodes the app may run on (kubernetes.io/hostname values). Keeps pods off
+# the tainted cp AND keeps cp out of the topology-spread domains — that is
+# what makes zero-downtime surge rollouts possible; see the affinity
+# comment in templates/deployment.yaml.
+workers:
+  - web1
+  - web2
 
 service:
   # HAProxy on cp load-balances the workers' kube-proxy NodePort listeners.
