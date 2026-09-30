@@ -12,6 +12,7 @@ metadata:
     app: tiket-app
 spec:
   replicas: {{ .Values.replicas }}
+  revisionHistoryLimit: 3
   # Zero-downtime: surge the new pod before killing an old one
   # (maxUnavailable 0). This only schedules because the nodeAffinity in
   # the pod spec below keeps cp out of the topology-spread domains —
